@@ -161,22 +161,13 @@ docker:build-and-push:
   before_script:
     - apk add --no-cache curl
   script:
-    - test -n "$RENDER_AUTH_DEPLOY_HOOK_URL"
-    - test -n "$RENDER_SUBMIT_DEPLOY_HOOK_URL"
-    - test -n "$RENDER_GATEWAY_DEPLOY_HOOK_URL"
-    - test -n "$RENDER_FRONTEND_DEPLOY_HOOK_URL"
-    - >
-      curl --fail --silent --show-error
-      "$RENDER_AUTH_DEPLOY_HOOK_URL?imgURL=$AUTH_SERVICE_IMAGE"
-    - >
-      curl --fail --silent --show-error
-      "$RENDER_SUBMIT_DEPLOY_HOOK_URL?imgURL=$SUBMIT_SERVICE_IMAGE"
-    - >
-      curl --fail --silent --show-error
-      "$RENDER_GATEWAY_DEPLOY_HOOK_URL?imgURL=$API_GATEWAY_IMAGE"
-    - >
-      curl --fail --silent --show-error
-      "$RENDER_FRONTEND_DEPLOY_HOOK_URL?imgURL=$FRONTEND_IMAGE"
+   railway login --token "$RAILWAY_TOKEN"
+   railway up --project "$RAILWAY_PROJECT_ID" --service "auth-service" --image "$AUTH_SERVICE_IMAGE"
+   railway up --project "$RAILWAY_PROJECT_ID" --service "submit-service" --image "$SUBMIT_SERVICE_IMAGE"
+   railway up --project "$RAIL        
+   WAY_PROJECT_ID" --service "api-gateway" --image "$API_GATEWAY_IMAGE"
+   railway up --project "$RAILWAY_PROJECT_ID" --service "frontend" --image "$FRONTEND_IMAGE"
+
 
 deploy:staging:
   extends: .deploy_template
