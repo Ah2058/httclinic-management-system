@@ -118,9 +118,11 @@ build:api-gateway:
 build:frontend:
   stage: build
   image: node:22-bookworm
+  variables:
+    NODE_ENV: "development"
   before_script:
     - cd frontend
-    - npm ci
+    - npm ci --include=dev
   script:
     - npm run build
   artifacts:
