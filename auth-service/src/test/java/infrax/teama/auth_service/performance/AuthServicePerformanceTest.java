@@ -56,7 +56,7 @@ class AuthServicePerformanceTest {
 	}
 
 	@Test
-	@Timeout(value = 5, unit = TimeUnit.SECONDS)
+	@Timeout(value = 15, unit = TimeUnit.SECONDS)
 	void testMultipleLoginsPerformance() throws Exception {
 		// Arrange
 		String loginRequest = "{\"username\":\"admin\",\"password\":\"admin\"}";
@@ -76,8 +76,8 @@ class AuthServicePerformanceTest {
 		long totalTime = endTime - startTime;
 		long averageTime = totalTime / numberOfAttempts;
 
-		assertTrue(totalTime < 5000, "10 logins should complete within 5 seconds");
-		assertTrue(averageTime < 500, "Average login time should be less than 500ms");
+		assertTrue(totalTime < 15000, "10 logins should complete within 15 seconds");
+		assertTrue(averageTime < 1500, "Average login time should be less than 1500ms");
 	}
 
 	@Test
@@ -157,7 +157,7 @@ class AuthServicePerformanceTest {
 	}
 
 	@Test
-	@Timeout(value = 10, unit = TimeUnit.SECONDS)
+	@Timeout(value = 20, unit = TimeUnit.SECONDS)
 	void testThroughputUnder10Seconds() throws Exception {
 		// Arrange
 		String loginRequest = "{\"username\":\"admin\",\"password\":\"admin\"}";

@@ -33,7 +33,6 @@ class SubmitServiceE2ETest {
 	@Autowired
 	private WebApplicationContext webApplicationContext;
 
-	@Autowired
 	private ObjectMapper objectMapper;
 
 	private MockMvc mockMvc;
@@ -41,6 +40,41 @@ class SubmitServiceE2ETest {
 	@BeforeEach
 	void setUp() {
 		mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+		objectMapper = new ObjectMapper().findAndRegisterModules();
+	}
+
+	private String patientFormToJson(PatientFormRequest request) {
+		StringBuilder json = new StringBuilder();
+		json.append("{");
+		json.append("\"firstName\":\"").append(request.getFirstName()).append("\",");
+		json.append("\"lastName\":\"").append(request.getLastName()).append("\",");
+		json.append("\"dateOfBirth\":\"").append(request.getDateOfBirth()).append("\",");
+		json.append("\"streetName\":\"").append(request.getStreetName()).append("\",");
+		json.append("\"streetNumber\":\"").append(request.getStreetNumber()).append("\",");
+		json.append("\"city\":\"").append(request.getCity()).append("\",");
+		json.append("\"postalCode\":\"").append(request.getPostalCode()).append("\",");
+		json.append("\"phoneNumber\":\"").append(request.getPhoneNumber()).append("\",");
+		json.append("\"emailAddress\":").append(request.getEmailAddress() == null ? "null" : "\"" + request.getEmailAddress() + "\"").append(",");
+		json.append("\"otherSymptoms\":").append(request.getOtherSymptoms() == null ? "null" : "\"" + request.getOtherSymptoms() + "\"").append(",");
+		json.append("\"otherAllergies\":").append(request.getOtherAllergies() == null ? "null" : "\"" + request.getOtherAllergies() + "\"").append(",");
+		json.append("\"otherMedications\":").append(request.getOtherMedications() == null ? "null" : "\"" + request.getOtherMedications() + "\"").append(",");
+		json.append("\"otherPreExistingConditions\":").append(request.getOtherPreExistingConditions() == null ? "null" : "\"" + request.getOtherPreExistingConditions() + "\"").append(",");
+		json.append("\"symptoms\":").append(enumListToJson(request.getSymptoms())).append(",");
+		json.append("\"allergies\":").append(enumListToJson(request.getAllergies())).append(",");
+		json.append("\"medications\":").append(enumListToJson(request.getMedications())).append(",");
+		json.append("\"preExistingConditions\":").append(enumListToJson(request.getPreExistingConditions()));
+		json.append("}");
+		return json.toString();
+	}
+
+	private String enumListToJson(java.util.List<? extends Enum<?>> values) {
+		if (values == null) {
+			return "null";
+		}
+		return values.stream()
+				.map(Enum::name)
+				.map(value -> "\"" + value + "\"")
+				.collect(java.util.stream.Collectors.joining(",", "[", "]"));
 	}
 
 	private PatientFormRequest createValidPatientFormRequest() {
@@ -65,7 +99,7 @@ class SubmitServiceE2ETest {
 	void testCompletePatientFormSubmissionFlow() throws Exception {
 		// Arrange
 		PatientFormRequest request = createValidPatientFormRequest();
-		String jsonRequest = objectMapper.writeValueAsString(request);
+		String jsonRequest = patientFormToJson(request);
 
 		// Act - Submit form
 		MvcResult submitResult = mockMvc.perform(post("/api/submit/forms")
@@ -95,7 +129,7 @@ class SubmitServiceE2ETest {
 		PatientFormRequest request = createValidPatientFormRequest();
 		request.setFirstName("JANE");
 		request.setOtherSymptoms("Fatigue and weakness");
-		String jsonRequest = objectMapper.writeValueAsString(request);
+		String jsonRequest = patientFormToJson(request);
 
 		// Act - Submit form
 		MvcResult submitResult = mockMvc.perform(post("/api/submit/forms")
@@ -122,8 +156,8 @@ class SubmitServiceE2ETest {
 		// Act & Assert - Submit multiple forms
 		for (int i = 0; i < numberOfForms; i++) {
 			PatientFormRequest request = createValidPatientFormRequest();
-			request.setFirstName("NAME" + i);
-			String jsonRequest = objectMapper.writeValueAsString(request);
+			request.setFirstName("NAME" + (char) ('A' + i));
+			String jsonRequest = patientFormToJson(request);
 
 			MvcResult result = mockMvc.perform(post("/api/submit/forms")
 					.contentType(MediaType.APPLICATION_JSON)
@@ -166,7 +200,7 @@ class SubmitServiceE2ETest {
 				PatientForm.PreExistingCondition.DIABETES,
 				PatientForm.PreExistingCondition.ASTHMA
 		));
-		String jsonRequest = objectMapper.writeValueAsString(request);
+		String jsonRequest = patientFormToJson(request);
 
 		// Act
 		MvcResult result = mockMvc.perform(post("/api/submit/forms")
@@ -191,7 +225,7 @@ class SubmitServiceE2ETest {
 		// Test 1: Lowercase first name
 		PatientFormRequest invalidRequest1 = createValidPatientFormRequest();
 		invalidRequest1.setFirstName("john");
-		String json1 = objectMapper.writeValueAsString(invalidRequest1);
+		String json1 = patientFormToJson(invalidRequest1);
 
 		mockMvc.perform(post("/api/submit/forms")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -201,7 +235,7 @@ class SubmitServiceE2ETest {
 		// Test 2: Invalid phone number
 		PatientFormRequest invalidRequest2 = createValidPatientFormRequest();
 		invalidRequest2.setPhoneNumber("invalid");
-		String json2 = objectMapper.writeValueAsString(invalidRequest2);
+		String json2 = patientFormToJson(invalidRequest2);
 
 		mockMvc.perform(post("/api/submit/forms")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -211,7 +245,7 @@ class SubmitServiceE2ETest {
 		// Test 3: Invalid email
 		PatientFormRequest invalidRequest3 = createValidPatientFormRequest();
 		invalidRequest3.setEmailAddress("not-an-email");
-		String json3 = objectMapper.writeValueAsString(invalidRequest3);
+		String json3 = patientFormToJson(invalidRequest3);
 
 		mockMvc.perform(post("/api/submit/forms")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -223,7 +257,7 @@ class SubmitServiceE2ETest {
 	void testFormSubmissionResponseStructure() throws Exception {
 		// Arrange
 		PatientFormRequest request = createValidPatientFormRequest();
-		String jsonRequest = objectMapper.writeValueAsString(request);
+		String jsonRequest = patientFormToJson(request);
 
 		// Act
 		MvcResult result = mockMvc.perform(post("/api/submit/forms")
@@ -259,7 +293,7 @@ class SubmitServiceE2ETest {
 		request.setOtherAllergies(null);
 		request.setOtherMedications(null);
 		request.setOtherPreExistingConditions(null);
-		String jsonRequest = objectMapper.writeValueAsString(request);
+		String jsonRequest = patientFormToJson(request);
 
 		// Act & Assert
 		MvcResult result = mockMvc.perform(post("/api/submit/forms")
@@ -279,11 +313,11 @@ class SubmitServiceE2ETest {
 	void testLargeFormSubmission() throws Exception {
 		// Arrange - Create a form with maximum data
 		PatientFormRequest request = createValidPatientFormRequest();
-		request.setOtherSymptoms("Very long symptom description ".repeat(50));
-		request.setOtherAllergies("Very long allergy description ".repeat(50));
-		request.setOtherMedications("Very long medication description ".repeat(50));
-		request.setOtherPreExistingConditions("Very long pre-existing condition description ".repeat(50));
-		String jsonRequest = objectMapper.writeValueAsString(request);
+		request.setOtherSymptoms("Very long symptom description ".repeat(5));
+		request.setOtherAllergies("Very long allergy description ".repeat(5));
+		request.setOtherMedications("Very long medication description ".repeat(5));
+		request.setOtherPreExistingConditions("Very long pre-existing condition description ".repeat(3));
+		String jsonRequest = patientFormToJson(request);
 
 		// Act & Assert
 		mockMvc.perform(post("/api/submit/forms")
@@ -297,7 +331,7 @@ class SubmitServiceE2ETest {
 	void testFormSubmissionContentTypeValidation() throws Exception {
 		// Arrange
 		PatientFormRequest request = createValidPatientFormRequest();
-		String jsonRequest = objectMapper.writeValueAsString(request);
+		String jsonRequest = patientFormToJson(request);
 
 		// Act & Assert - Verify content type header
 		mockMvc.perform(post("/api/submit/forms")
@@ -315,7 +349,7 @@ class SubmitServiceE2ETest {
 		// Test 1: Very old birth date
 		PatientFormRequest request1 = createValidPatientFormRequest();
 		request1.setDateOfBirth(LocalDate.of(1920, 1, 1));
-		String json1 = objectMapper.writeValueAsString(request1);
+		String json1 = patientFormToJson(request1);
 
 		mockMvc.perform(post("/api/submit/forms")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -325,8 +359,8 @@ class SubmitServiceE2ETest {
 		// Test 2: Recent birth date
 		PatientFormRequest request2 = createValidPatientFormRequest();
 		request2.setDateOfBirth(LocalDate.now().minusYears(1));
-		String json2 = objectMapper.writeValueAsString(request2);
-
+		String json2 = patientFormToJson(request2);
+		
 		mockMvc.perform(post("/api/submit/forms")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(json2))

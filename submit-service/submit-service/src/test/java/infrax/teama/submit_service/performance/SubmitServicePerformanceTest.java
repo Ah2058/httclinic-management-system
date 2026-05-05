@@ -73,6 +73,16 @@ class SubmitServicePerformanceTest {
 		return request;
 	}
 
+	private String uppercaseNameForIndex(String prefix, int index) {
+		StringBuilder suffix = new StringBuilder();
+		int value = index;
+		do {
+			suffix.insert(0, (char) ('A' + (value % 26)));
+			value = (value / 26) - 1;
+		} while (value >= 0);
+		return prefix + suffix;
+	}
+
 	@Test
 	@Timeout(value = 3, unit = TimeUnit.SECONDS)
 	void testFormSubmissionResponseTimeUnder3Seconds() throws Exception {
@@ -102,7 +112,7 @@ class SubmitServicePerformanceTest {
 		long startTime = System.currentTimeMillis();
 
 		for (int i = 0; i < numberOfSubmissions; i++) {
-			PatientFormRequest request = createValidPatientFormRequest("NAME" + i);
+			PatientFormRequest request = createValidPatientFormRequest(uppercaseNameForIndex("NAME", i));
 			String jsonRequest = patientFormToJson(request);
 
 			mockMvc.perform(post("/api/submit/forms")
@@ -127,7 +137,7 @@ class SubmitServicePerformanceTest {
 		// Act & Assert
 		for (int i = 0; i < numberOfSubmissions; i++) {
 			try {
-				PatientFormRequest request = createValidPatientFormRequest("NAME" + i);
+				PatientFormRequest request = createValidPatientFormRequest(uppercaseNameForIndex("NAME", i));
 				String jsonRequest = patientFormToJson(request);
 
 				mockMvc.perform(post("/api/submit/forms")
@@ -180,11 +190,9 @@ class SubmitServicePerformanceTest {
 	void testResponseTimeConsistency() throws Exception {
 		// Arrange
 		long[] responseTimes = new long[15];
-		PatientFormRequest baseRequest = createValidPatientFormRequest("TEST");
-
 		// Act
 		for (int i = 0; i < 15; i++) {
-			PatientFormRequest request = createValidPatientFormRequest("NAME" + i);
+			PatientFormRequest request = createValidPatientFormRequest(uppercaseNameForIndex("NAME", i));
 			String jsonRequest = patientFormToJson(request);
 
 			long startTime = System.currentTimeMillis();
@@ -221,7 +229,7 @@ class SubmitServicePerformanceTest {
 
 		while (System.currentTimeMillis() - startTime < testDuration) {
 			try {
-				PatientFormRequest request = createValidPatientFormRequest("PERF" + successCount);
+				PatientFormRequest request = createValidPatientFormRequest(uppercaseNameForIndex("PERF", successCount));
 				String jsonRequest = patientFormToJson(request);
 
 				mockMvc.perform(post("/api/submit/forms")
@@ -250,7 +258,7 @@ class SubmitServicePerformanceTest {
 		long startTime = System.currentTimeMillis();
 
 		for (int i = 0; i < numberOfFailures; i++) {
-			PatientFormRequest request = createValidPatientFormRequest("NAME" + i);
+			PatientFormRequest request = createValidPatientFormRequest(uppercaseNameForIndex("NAME", i));
 			request.setFirstName("lowercase"); // Invalid format
 			String jsonRequest = patientFormToJson(request);
 
