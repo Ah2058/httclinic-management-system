@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <defs>
+    <style>
+      .title { font: 700 28px Arial, sans-serif; fill: #1f2937; }
+      .component { fill: #ffffff; stroke: #334155; stroke-width: 2.5; rx: 12; }
+      .componentHeader { fill: #e0f2fe; stroke: #0284c7; stroke-width: 2; rx: 12; }
+      .db { fill: #ecfeff; stroke: #0f766e; stroke-width: 2.5; }
+      .name { font: 700 20px Arial, sans-serif; fill: #0f172a; }
+      .item { font: 500 15px Arial, sans-serif; fill: #334155; }
+      .arrow { stroke: #2563eb; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+      .dataArrow { stroke: #0f766e; stroke-width: 3; fill: none; marker-end: url(#arrowheadGreen); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#2563eb"/>
+    </marker>
+    <marker id="arrowheadGreen" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#0f766e"/>
+    </marker>
+  </defs>
+
+  <text x="40" y="50" class="title">UML Component View</text>
+
+  <g transform="translate(60 120)">
+    <rect width="260" height="180" class="component"/>
+    <rect width="260" height="45" class="componentHeader"/>
+    <text x="55" y="29" class="name">Angular Frontend</text>
+    <text x="20" y="75" class="item">+ HomeComponent</text>
+    <text x="20" y="100" class="item">+ LoginComponent</text>
+    <text x="20" y="125" class="item">+ PatientDashboardComponent</text>
+    <text x="20" y="150" class="item">+ AdminDashboardComponent</text>
+    <text x="20" y="175" class="item">+ AuthService</text>
+  </g>
+
+  <g transform="translate(470 120)">
+    <rect width="260" height="180" class="component"/>
+    <rect width="260" height="45" class="componentHeader"/>
+    <text x="75" y="29" class="name">API Gateway</text>
+    <text x="20" y="75" class="item">+ Route /api/auth/**</text>
+    <text x="20" y="100" class="item">+ Route /api/submit/**</text>
+    <text x="20" y="125" class="item">+ Centralized CORS</text>
+  </g>
+
+  <g transform="translate(880 80)">
+    <rect width="260" height="220" class="component"/>
+    <rect width="260" height="45" class="componentHeader"/>
+    <text x="80" y="29" class="name">Auth Service</text>
+    <text x="20" y="75" class="item">+ AuthController</text>
+    <text x="20" y="100" class="item">+ JwtService</text>
+    <text x="20" y="125" class="item">+ CustomUserDetailsService</text>
+    <text x="20" y="150" class="item">+ SecurityConfig</text>
+    <text x="20" y="175" class="item">+ UserRepository</text>
+    <text x="20" y="200" class="item">+ RoleRepository</text>
+  </g>
+
+  <g transform="translate(880 380)">
+    <rect width="260" height="220" class="component"/>
+    <rect width="260" height="45" class="componentHeader"/>
+    <text x="68" y="29" class="name">Submit Service</text>
+    <text x="20" y="75" class="item">+ PatientFormController</text>
+    <text x="20" y="100" class="item">+ PatientFormService</text>
+    <text x="20" y="125" class="item">+ ReportService</text>
+    <text x="20" y="150" class="item">+ SecurityConfig</text>
+    <text x="20" y="175" class="item">+ JwtAuthenticationFilter</text>
+    <text x="20" y="200" class="item">+ PatientFormRepository</text>
+  </g>
+
+  <g transform="translate(470 470)">
+    <ellipse cx="130" cy="35" rx="115" ry="35" class="db"/>
+    <rect x="15" y="35" width="230" height="95" class="db"/>
+    <ellipse cx="130" cy="130" rx="115" ry="35" class="db"/>
+    <text x="88" y="90" class="name">MariaDB</text>
+    <text x="62" y="116" class="item">users, roles, patient_form</text>
+  </g>
+
+  <path d="M320 210 L470 210" class="arrow"/>
+  <path d="M730 190 L880 190" class="arrow"/>
+  <path d="M730 240 C810 260, 830 420, 880 490" class="arrow"/>
+  <path d="M880 245 C760 320, 700 440, 620 500" class="dataArrow"/>
+  <path d="M880 520 L730 520" class="dataArrow"/>
+
+  <text x="348" y="198" class="item">HTTP requests</text>
+  <text x="762" y="176" class="item">auth routes</text>
+  <text x="758" y="375" class="item">submit routes</text>
+</svg>

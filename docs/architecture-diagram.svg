@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <defs>
+    <style>
+      .title { font: 700 28px Arial, sans-serif; fill: #1f2937; }
+      .layer { fill: #f8fafc; stroke: #cbd5e1; stroke-width: 2; rx: 18; }
+      .box { fill: #ffffff; stroke: #334155; stroke-width: 2; rx: 14; }
+      .db { fill: #ecfeff; stroke: #0f766e; stroke-width: 2; }
+      .label { font: 600 18px Arial, sans-serif; fill: #0f172a; }
+      .small { font: 500 14px Arial, sans-serif; fill: #334155; }
+      .layerLabel { font: 700 20px Arial, sans-serif; fill: #475569; }
+      .arrow { stroke: #2563eb; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+      .dataArrow { stroke: #0f766e; stroke-width: 3; fill: none; marker-end: url(#arrowheadGreen); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#2563eb"/>
+    </marker>
+    <marker id="arrowheadGreen" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#0f766e"/>
+    </marker>
+  </defs>
+
+  <text x="40" y="50" class="title">Clinic Management System Architecture</text>
+
+  <rect x="40" y="90" width="1120" height="110" class="layer"/>
+  <text x="65" y="125" class="layerLabel">User Layer</text>
+  <rect x="180" y="125" width="220" height="50" class="box"/>
+  <text x="252" y="157" class="label">Patient User</text>
+  <rect x="460" y="125" width="220" height="50" class="box"/>
+  <text x="547" y="157" class="label">Admin User</text>
+
+  <rect x="40" y="230" width="1120" height="120" class="layer"/>
+  <text x="65" y="265" class="layerLabel">Client Layer</text>
+  <rect x="360" y="270" width="480" height="55" class="box"/>
+  <text x="527" y="303" class="label">Angular Frontend</text>
+
+  <rect x="40" y="380" width="1120" height="120" class="layer"/>
+  <text x="65" y="415" class="layerLabel">Edge Layer</text>
+  <rect x="360" y="420" width="480" height="55" class="box"/>
+  <text x="494" y="452" class="label">API Gateway</text>
+  <text x="474" y="472" class="small">Spring Cloud Gateway</text>
+
+  <rect x="40" y="530" width="1120" height="150" class="layer"/>
+  <text x="65" y="565" class="layerLabel">Service and Data Layer</text>
+  <rect x="180" y="585" width="300" height="65" class="box"/>
+  <text x="275" y="615" class="label">Auth Service</text>
+  <text x="210" y="637" class="small">Spring Boot, Security, JWT, JPA</text>
+  <rect x="530" y="585" width="300" height="65" class="box"/>
+  <text x="611" y="615" class="label">Submit Service</text>
+  <text x="566" y="637" class="small">Spring Boot, JPA, Validation, PDF</text>
+  <g>
+    <ellipse cx="980" cy="608" rx="95" ry="28" class="db"/>
+    <rect x="885" y="608" width="190" height="52" class="db"/>
+    <ellipse cx="980" cy="660" rx="95" ry="28" class="db"/>
+    <text x="942" y="640" class="label">MariaDB</text>
+  </g>
+
+  <path d="M290 175 L520 270" class="arrow"/>
+  <path d="M570 175 L640 270" class="arrow"/>
+  <path d="M600 325 L600 420" class="arrow"/>
+  <path d="M540 475 L330 585" class="arrow"/>
+  <path d="M660 475 L680 585" class="arrow"/>
+  <path d="M480 618 L885 618" class="dataArrow"/>
+  <path d="M830 618 L885 618" class="dataArrow"/>
+
+  <text x="650" y="560" class="small">/api/auth/**</text>
+  <text x="445" y="560" class="small">/api/submit/**</text>
+</svg>
