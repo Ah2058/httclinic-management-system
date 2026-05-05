@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: infrax.teama.submit_service.integration.SubmitServiceE2ETest
+-------------------------------------------------------------------------------
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 46.24 s -- in infrax.teama.submit_service.integration.SubmitServiceE2ETest

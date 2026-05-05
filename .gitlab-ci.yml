@@ -158,15 +158,14 @@ docker:build-and-push:
 .deploy_template:
   stage: deploy
   image: alpine:3.21
-  before_script:
-    - apk add --no-cache curl
   script:
+   apk add --no-cache curl npm 
    npm install -g railway/cli
+   railway --version
    railway login --token "$RAILWAY_TOKEN"
    railway up --project "$RAILWAY_PROJECT_ID" --service "auth-service" --image "$AUTH_SERVICE_IMAGE"
    railway up --project "$RAILWAY_PROJECT_ID" --service "submit-service" --image "$SUBMIT_SERVICE_IMAGE"
-   railway up --project "$RAIL        
-   WAY_PROJECT_ID" --service "api-gateway" --image "$API_GATEWAY_IMAGE"
+   railway up --project "$RAILWAY_PROJECT_ID" --service "api-gateway" --image "$API_GATEWAY_IMAGE"
    railway up --project "$RAILWAY_PROJECT_ID" --service "frontend" --image "$FRONTEND_IMAGE"
 
 
