@@ -53,16 +53,34 @@ sast:
 
 test:auth-service:
   extends: .maven_test_template
+  services:
+    - name: mariadb:11
+      alias: mariadb
   variables:
     SPRING_PROFILES_ACTIVE: "test"
+    SPRING_DATASOURCE_URL: "jdbc:mariadb://mariadb:3306/auth_db"
+    SPRING_DATASOURCE_USERNAME: "root"
+    SPRING_DATASOURCE_PASSWORD: "root"
+    MARIADB_ROOT_PASSWORD: "root"
+    MARIADB_DATABASE: "auth_db"
   before_script:
+    - until (echo > /dev/tcp/mariadb/3306) 2>/dev/null; do echo "Waiting for MariaDB..."; sleep 2; done
     - cd auth-service
 
 test:submit-service:
   extends: .maven_test_template
+  services:
+    - name: mariadb:11
+      alias: mariadb
   variables:
     SPRING_PROFILES_ACTIVE: "test"
+    SPRING_DATASOURCE_URL: "jdbc:mariadb://mariadb:3306/clinicdb"
+    SPRING_DATASOURCE_USERNAME: "root"
+    SPRING_DATASOURCE_PASSWORD: "root"
+    MARIADB_ROOT_PASSWORD: "root"
+    MARIADB_DATABASE: "clinicdb"
   before_script:
+    - until (echo > /dev/tcp/mariadb/3306) 2>/dev/null; do echo "Waiting for MariaDB..."; sleep 2; done
     - cd submit-service/submit-service
 
 test:api-gateway:
