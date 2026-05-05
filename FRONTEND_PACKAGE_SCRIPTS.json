@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "start": "ng serve --proxy-config proxy.conf.json",
+    "dev": "ng serve --proxy-config proxy.conf.json --open",
+    "build": "ng build",
+    "test": "ng test",
+    "lint": "ng lint"
+  }
+}
+

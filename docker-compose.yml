@@ -1,35 +1,24 @@
-version: '3.8'
-
 services:
-  mariadb-auth:
-    image: mariadb:11
-    restart: unless-stopped
-    environment:
-      MARIADB_ROOT_PASSWORD: root
-      MARIADB_DATABASE: auth_db
-    ports:
-      - "3306:3306"
-    volumes:
-      - mariadb_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  mariadb-clinic:
+  mariadb:
     image: mariadb:11
     restart: unless-stopped
     container_name: clinic-mariadb
     environment:
-      MARIADB_ROOT_PASSWORD: root
-      MARIADB_DATABASE: clinicdb
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-root}
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-clinicdb}
       MARIADB_INITDB_SKIP_TZINFO: 1
     ports:
-      - "3307:3307"
+      - "${DB_PORT:-3306}:3306"
     volumes:
       - mariadb_data:/var/lib/mysql
-      - ./init-databases.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./init-databases.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    command:
+      - --wait-timeout=28800
+      - --interactive-timeout=28800
+      - --max-connections=500
+      - --max-allowed-packet=256M
+      - --net-read-timeout=86400
+      - --net-write-timeout=86400
     networks:
       - clinic-network
     healthcheck:
@@ -37,29 +26,33 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
   auth-service:
     build: ./auth-service
     restart: unless-stopped
+    container_name: clinic-auth-service
     ports:
-      - "8080:8080"
+      - "${AUTH_SERVICE_PORT:-8080}:8080"
     environment:
       DB_URL: jdbc:mariadb://mariadb:3306/auth_db
-      DB_USERNAME: root
-      DB_PASSWORD: root
+      DB_USERNAME: ${DB_USER:-root}
+      DB_PASSWORD: ${DB_ROOT_PASSWORD:-root}
     depends_on:
-      mariadb-auth:
+      mariadb:
         condition: service_healthy
+    networks:
+      - clinic-network
 
   submit-service:
     build: ./submit-service/submit-service
     restart: unless-stopped
     container_name: clinic-submit-service
     ports:
-      - "8081:8081"
+      - "${SUBMIT_SERVICE_PORT:-8081}:8080"
     environment:
       SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/clinicdb
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-root}
+      SPRING_DATASOURCE_PASSWORD: ${DB_ROOT_PASSWORD:-root}
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.mariadb.jdbc.Driver
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MariaDBDialect
@@ -68,5 +61,35 @@ services:
         condition: service_healthy
     networks:
       - clinic-network
+
+  api-gateway:
+    build: ./api-gateway
+    restart: unless-stopped
+    container_name: clinic-api-gateway
+    ports:
+      - "${API_GATEWAY_PORT:-8888}:8888"
+    environment:
+      SPRING_APPLICATION_NAME: api-gateway
+    depends_on:
+      - auth-service
+      - submit-service
+    networks:
+      - clinic-network
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    container_name: clinic-frontend
+    ports:
+      - "${FRONTEND_PORT:-4200}:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - clinic-network
+
+networks:
+  clinic-network:
+    driver: bridge
+
 volumes:
   mariadb_data:

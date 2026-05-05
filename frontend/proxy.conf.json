@@ -1,0 +1,26 @@
+{
+  "/api/submit": {
+    "target": "http://localhost:8081",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "warn",
+    "pathRewrite": {
+      "^/api/submit": "/api/submit"
+    },
+    "ws": true,
+    "timeout": 30000,
+    "proxyTimeout": 30000
+  },
+  "/api": {
+    "target": "http://localhost:8888",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "warn",
+    "pathRewrite": {
+      "^/api": "/api"
+    },
+    "ws": true,
+    "timeout": 30000,
+    "proxyTimeout": 30000
+  }
+}

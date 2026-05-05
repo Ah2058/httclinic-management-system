@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: auth-service
+          uri: http://clinic-auth-service:8080
+          predicates:
+            - Path=/api/auth/**
+          #filters:
+           # - RewritePath=/api/auth(?<segment>/?.*), $\{segment}
+        - id: submit-service
+          uri: http://clinic-submit-service:8080
+          predicates:
+            - Path=/api/submit/**
+          #filters:
+           # - RewritePath=/api/submit(?<segment>/?.*), $\{segment}
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - http://localhost:4200
+              - http://localhost:4300
+              - http://frontend:4200
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - '*'
+            allowCredentials: true
+            maxAge: 3600
+
+server:
+  port: 8888
+  http2:
+    enabled: true
+  compression:
+    enabled: true
+    min-response-size: 1024
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.security: DEBUG
+

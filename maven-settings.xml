@@ -1,0 +1,69 @@
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0">
+    <!-- Maven settings for optimized builds with network resilience -->
+
+    <localRepository>${user.home}/.m2/repository</localRepository>
+
+    <!-- Parallel build settings -->
+    <profiles>
+        <profile>
+            <id>build-optimization</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <!-- Use 1 core to prevent timeout issues -->
+                <maven.build.threads>1</maven.build.threads>
+                <!-- Reduce memory usage and increase speed -->
+                <maven.compiler.maxmem>1024m</maven.compiler.maxmem>
+                <!-- Skip javadoc during build -->
+                <maven.javadoc.skip>true</maven.javadoc.skip>
+                <!-- High log level for visibility -->
+                <org.slf4j.simpleLogger.defaultLogLevel>info</org.slf4j.simpleLogger.defaultLogLevel>
+            </properties>
+        </profile>
+    </profiles>
+
+    <!-- Mirror configuration with multiple fallback options -->
+    <mirrors>
+        <mirror>
+            <id>maven-default-http-blocker</id>
+            <mirrorOf>external:http:*</mirrorOf>
+            <name>Pseudo repository to mirror external repositories initially over HTTP using HTTP.</name>
+            <url>http://0.0.0.0/</url>
+            <blocked>true</blocked>
+        </mirror>
+        <!-- Primary: Maven Central (official) -->
+        <mirror>
+            <id>central</id>
+            <mirrorOf>central</mirrorOf>
+            <name>Maven Central Repository</name>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </mirror>
+        <!-- Fallback: Aliyun Mirror (fast in Asia) -->
+        <mirror>
+            <id>aliyun</id>
+            <mirrorOf>central</mirrorOf>
+            <name>Aliyun Maven Mirror</name>
+            <url>https://maven.aliyun.com/repository/central</url>
+        </mirror>
+    </mirrors>
+
+    <!-- Connection settings with increased timeouts -->
+    <servers>
+        <server>
+            <id>central</id>
+            <configuration>
+                <connectTimeout>60000</connectTimeout>
+                <readTimeout>60000</readTimeout>
+            </configuration>
+        </server>
+        <server>
+            <id>aliyun</id>
+            <configuration>
+                <connectTimeout>60000</connectTimeout>
+                <readTimeout>60000</readTimeout>
+            </configuration>
+        </server>
+    </servers>
+</settings>
+

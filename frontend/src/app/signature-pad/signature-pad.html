@@ -1,0 +1,23 @@
+<div class="sig">
+  <div class="sig-top">
+    <span class="sig-title">Sign here</span>
+    <button type="button" class="sig-btn" (click)="onClear()" [disabled]="isEmpty()">
+      Clear
+    </button>
+  </div>
+
+  <div class="sig-canvas-wrap">
+    <canvas
+      #canvas
+      class="sig-canvas"
+      aria-label="Signature pad"
+      (pointerdown)="onPointerDown($event)"
+      (pointermove)="onPointerMove($event)"
+      (pointerup)="onPointerUpOrCancel()"
+      (pointercancel)="onPointerUpOrCancel()"
+    ></canvas>
+  </div>
+
+  <p class="sig-hint">Use mouse, touch, or pen. Your signature is saved automatically.</p>
+</div>
+

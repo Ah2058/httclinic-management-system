@@ -43,4 +43,7 @@ public class PatientFormRequest {
     private String otherMedications;
     private List<PatientForm.PreExistingCondition> preExistingConditions;
     private String otherPreExistingConditions;
+
+    // Additional fields
+    private String signatureDataUrl;
 }

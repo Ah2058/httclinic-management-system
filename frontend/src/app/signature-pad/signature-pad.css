@@ -1,0 +1,111 @@
+.sig {
+  --line: #e9ecef;
+  --text: #2c3e50;
+  --muted: #666;
+  --focus: #667eea;
+
+  display: grid;
+  gap: clamp(0.4rem, 0.8vw, 0.6rem);
+}
+
+.sig-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(0.5rem, 1vw, 1rem);
+  flex-wrap: wrap;
+}
+
+.sig-title {
+  font-weight: 600;
+  color: var(--text);
+  font-size: clamp(0.9rem, 1.5vw, 1rem);
+}
+
+.sig-btn {
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.02);
+  color: var(--text);
+  padding: clamp(0.3rem, 0.6vw, 0.4rem) clamp(0.6rem, 1.2vw, 0.75rem);
+  cursor: pointer;
+  font: inherit;
+  transition: all 0.2s ease;
+  font-size: clamp(0.8rem, 1.2vw, 0.9rem);
+}
+
+.sig-btn:hover:not([disabled]) {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: var(--focus);
+}
+
+.sig-btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.sig-btn:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.sig-canvas-wrap {
+  border: 1px dashed var(--line);
+  border-radius: clamp(0.75rem, 1.5vw, 0.875rem);
+  background: #f9fafb;
+  padding: clamp(0.4rem, 0.8vw, 0.6rem);
+}
+
+.sig-canvas {
+  display: block;
+  width: 100%;
+  height: clamp(120px, 30vw, 200px);
+  border-radius: clamp(0.6rem, 1vw, 0.75rem);
+  background: #ffffff;
+  touch-action: none;
+  border: 1px solid var(--line);
+}
+
+.sig-hint {
+  margin: 0;
+  font-size: clamp(0.8rem, 1.2vw, 0.9rem);
+  color: var(--muted);
+}
+
+/* Responsive canvas for small screens */
+@media (max-width: 768px) {
+  .sig {
+    gap: clamp(0.3rem, 0.6vw, 0.5rem);
+  }
+
+  .sig-top {
+    gap: clamp(0.4rem, 0.8vw, 0.75rem);
+  }
+
+  .sig-canvas {
+    height: clamp(100px, 25vw, 150px);
+  }
+
+  .sig-canvas-wrap {
+    padding: clamp(0.3rem, 0.6vw, 0.5rem);
+  }
+}
+
+@media (max-width: 480px) {
+  .sig-top {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sig-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .sig-canvas {
+    height: clamp(80px, 20vw, 120px);
+  }
+}
+
+

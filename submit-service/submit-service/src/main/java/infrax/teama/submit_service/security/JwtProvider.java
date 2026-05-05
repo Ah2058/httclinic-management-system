@@ -8,7 +8,8 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
+import java.util.Base64;
+import java.util.List;
 
 @Component
 public class JwtProvider {
@@ -16,11 +17,15 @@ public class JwtProvider {
     @Value("${jwt.secret:VGhpcyBpcyBhIHNhbXBsZSBzZWNyZXQga2V5IGZvciBKV1Qgc2lnbmluZyE=}")
     private String jwtSecret;
 
-    @Value("${jwt.expiration:86400000}")
-    private long jwtExpirationMs;
 
     public String getUsernameFromToken(String token) {
         return getClaimsFromToken(token).getSubject();
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<String> getRolesFromToken(String token) {
+        List<String> roles = (List<String>) (List<?>) getClaimsFromToken(token).get("roles", List.class);
+        return (roles != null && !roles.isEmpty()) ? roles : List.of("USER");
     }
 
     public boolean validateToken(String token) {
@@ -44,7 +49,14 @@ public class JwtProvider {
     }
 
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+        // Keep compatible with auth-service which Base64-decodes jwt.secret before signing/verifying.
+        byte[] keyBytes;
+        try {
+            keyBytes = Base64.getDecoder().decode(jwtSecret);
+        } catch (IllegalArgumentException ignored) {
+            keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
+        }
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 }
 

@@ -1,0 +1,260 @@
+<div class="page">
+  @if (toast(); as toastState) {
+    <div class="toast" [attr.data-kind]="toastState.kind" role="status" aria-live="polite">
+      <div class="toast-msg">{{ toastState.message }}</div>
+      <button type="button" class="toast-close" (click)="dismissToast()" aria-label="Dismiss message">
+        {{ t('common.close') }}
+      </button>
+    </div>
+  }
+
+  <header class="header">
+    <div class="title-wrap">
+      <h1>{{ t('admin.title') }}</h1>
+      <p class="subtitle">{{ t('admin.subtitle') }}</p>
+      <div class="medical-mini-icons" aria-hidden="true">
+        <span class="medical-mini-card">
+          <img src="/symptoms/chest.svg" alt="" />
+          <span>Review</span>
+        </span>
+        <span class="medical-mini-card">
+          <img src="/symptoms/breath.svg" alt="" />
+          <span>Monitor</span>
+        </span>
+        <span class="medical-mini-card">
+          <img src="/symptoms/fever.svg" alt="" />
+          <span>Diagnose</span>
+        </span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="language-selector">
+        <label>{{ t('language') }}:</label>
+        <select [value]="currentLanguage()" (change)="onLanguageChange($event)" class="lang-select">
+          @for (lang of languages; track lang.code) {
+            <option [value]="lang.code" [selected]="currentLanguage() === lang.code">{{ lang.name }}</option>
+          }
+        </select>
+      </div>
+      <button class="link" type="button" (click)="onPrintPage()">{{ t('admin.print_page') }}</button>
+      <a class="link" routerLink="/patient-dashboard">{{ t('admin.patient_dashboard') }}</a>
+      <button class="link danger" type="button" (click)="onLogout()">{{ t('admin.logout') }}</button>
+    </div>
+  </header>
+
+  <div class="card">
+    <section class="section" aria-labelledby="search">
+      <h2 id="search">{{ t('admin.search') }}</h2>
+      @if (!showAllForms()) {
+        <form class="search-row" [formGroup]="searchForm" (ngSubmit)="onSearch()" novalidate>
+          <label class="field">
+            <span class="label">{{ t('admin.form_id') }} *</span>
+            <input class="input" type="text" formControlName="id" inputmode="numeric" autocomplete="off" />
+            @if (searchForm.controls.id.touched && searchForm.controls.id.invalid) {
+              <span class="error" role="alert">
+                @if (searchForm.controls.id.hasError('required')) { {{ t('admin.required') }}. }
+                @if (searchForm.controls.id.hasError('digitsOnly')) { {{ t('admin.numbers_only') }}. }
+              </span>
+            }
+          </label>
+          <div class="search-actions">
+            <button class="btn" type="submit" [disabled]="state() === 'loading'">
+              @if (state() === 'loading') { {{ t('admin.searching') }} } @else { {{ t('admin.search_button') }} }
+            </button>
+            <button class="btn ghost" type="button" (click)="toggleShowAllForms()">
+              {{ t('admin.show_all') }} ({{ allForms().length }})
+            </button>
+          </div>
+        </form>
+      } @else {
+        <div class="table-mode-actions">
+          <p class="hint">{{ t('admin.table_mode_hint') }}</p>
+          <button class="btn ghost" type="button" (click)="toggleShowAllForms()">
+            {{ t('admin.hide_all') }}
+          </button>
+        </div>
+      }
+
+      @if (errorMessage(); as msg) {
+        <p class="error-block" role="alert">{{ msg }}</p>
+      }
+
+       @if (showAllForms() && allForms().length > 0) {
+         <div class="forms-list">
+           <h3>{{ t('admin.all_forms') }}</h3>
+           <div class="table-filters">
+             <label class="field">
+               <span class="label">{{ t('admin.filter_search') }}</span>
+               <input
+                 class="input"
+                 type="text"
+                 [value]="tableFilterText()"
+                 (input)="onTableFilterTextChange($any($event.target).value)"
+                 [placeholder]="t('admin.filter_placeholder')"
+               />
+             </label>
+             <label class="field">
+               <span class="label">{{ t('admin.filter_status') }}</span>
+               <select
+                 class="input"
+                 [value]="tableFilterStatus()"
+                 (change)="onTableFilterStatusChange($any($event.target).value)"
+               >
+                 <option value="all">{{ t('admin.filter_all_statuses') }}</option>
+                 <option value="new">{{ t('admin.status_new') }}</option>
+                 <option value="viewed">{{ t('admin.status_viewed') }}</option>
+                 <option value="done">{{ t('admin.status_done') }}</option>
+               </select>
+             </label>
+             <div class="filter-actions">
+               <button class="btn ghost" type="button" (click)="clearTableFilters()">
+                 {{ t('admin.clear_filters') }}
+               </button>
+             </div>
+           </div>
+
+           <!-- Table View -->
+           <div class="table-container">
+             <table class="forms-table">
+               <thead>
+                 <tr>
+                   <th>{{ t('admin.form') }} ID</th>
+                   <th>{{ t('admin.first_name') }}</th>
+                   <th>{{ t('admin.last_name') }}</th>
+                   <th>{{ t('admin.phone') }}</th>
+                   <th>{{ t('admin.status') }}</th>
+                   <th>{{ t('admin.action') }}</th>
+                 </tr>
+               </thead>
+                <tbody>
+                  @for (form of filteredForms(); track form.id) {
+                    <tr [class.row-active]="record()?.id === form.id" [class.row-updated]="updatedFormId() === form.id">
+                     <td class="cell-id">#{{ form.id }}</td>
+                     <td>{{ form.firstName }}</td>
+                     <td>{{ form.lastName }}</td>
+                     <td>{{ form.phoneNumber }}</td>
+                     <td>
+                       <span class="status-badge" [class]="getStatusClass(form.status)">
+                         {{ getStatusLabel(form.status) }}
+                       </span>
+                     </td>
+                     <td>
+                       <button class="btn-small" (click)="loadFormFromList(form.id)" type="button">
+                         {{ t('admin.view') }}
+                       </button>
+                     </td>
+                   </tr>
+                 }
+               </tbody>
+             </table>
+           </div>
+           @if (filteredForms().length === 0) {
+             <p class="hint empty-filter-state">{{ t('admin.no_filtered_forms') }}</p>
+           }
+         </div>
+       }
+    </section>
+
+     @if (record(); as rec) {
+       <section class="section" aria-labelledby="details">
+         <div class="section-head">
+           <div>
+             <h2 id="details">{{ t('admin.form') }} #{{ rec.id }}</h2>
+             @if (rec.status) {
+               <span class="status-badge" [class]="getStatusClass(rec.status)">
+                 {{ getStatusLabel(rec.status) }}
+               </span>
+             }
+           </div>
+           <div class="action-buttons">
+             <button class="btn ghost" type="button" (click)="onDownloadPdf()">{{ t('admin.download_pdf') }}</button>
+             <button class="btn ghost" type="button" (click)="onPrintRecord()">{{ t('admin.print') }}</button>
+           </div>
+         </div>
+
+        <div class="two-col">
+          <div class="panel">
+            <h3>{{ t('admin.personal') }}</h3>
+            <dl class="dl">
+              <div class="row"><dt>{{ t('admin.first_name') }}</dt><dd>{{ rec.firstName }}</dd></div>
+              <div class="row"><dt>{{ t('admin.last_name') }}</dt><dd>{{ rec.lastName }}</dd></div>
+              <div class="row"><dt>{{ t('admin.date_of_birth') }}</dt><dd>{{ rec.dateOfBirth }}</dd></div>
+              <div class="row"><dt>{{ t('admin.phone') }}</dt><dd>{{ rec.phoneNumber }}</dd></div>
+              <div class="row"><dt>{{ t('admin.email') }}</dt><dd>{{ rec.emailAddress ?? t('common.dash') }}</dd></div>
+              <div class="row"><dt>{{ t('admin.address') }}</dt><dd>{{ rec.streetName }} {{ rec.streetNumber }}, {{ rec.city }}, {{ rec.postalCode }}</dd></div>
+            </dl>
+          </div>
+
+          <div class="panel">
+            <h3>{{ t('admin.medical') }}</h3>
+            <dl class="dl">
+              <div class="row">
+                <dt>{{ t('admin.symptoms') }}</dt>
+                <dd>
+                  @if ((rec.symptoms ?? []).length > 0) {
+                    <div class="symptom-list">
+                      @for (symptom of rec.symptoms ?? []; track symptom) {
+                        <span class="symptom-pill">
+                          <img [src]="symptomImage(symptom)" [alt]="t('enum.symptom.' + symptom)" />
+                          <span>{{ t('enum.symptom.' + symptom) }}</span>
+                        </span>
+                      }
+                    </div>
+                  } @else {
+                    {{ t('common.none') }}
+                  }
+                </dd>
+              </div>
+              <div class="row"><dt>{{ t('admin.other_symptoms') }}</dt><dd>{{ rec.otherSymptoms ?? t('common.dash') }}</dd></div>
+              <div class="row"><dt>{{ t('admin.allergies') }}</dt><dd>{{ formatList(rec.allergies ?? null, 'enum.allergy') }}</dd></div>
+              <div class="row"><dt>{{ t('admin.other_allergies') }}</dt><dd>{{ rec.otherAllergies ?? t('common.dash') }}</dd></div>
+              <div class="row"><dt>{{ t('admin.medications') }}</dt><dd>{{ formatList(rec.medications ?? null, 'enum.medication') }}</dd></div>
+              <div class="row"><dt>{{ t('admin.other_meds') }}</dt><dd>{{ rec.otherMedications ?? t('common.dash') }}</dd></div>
+              <div class="row"><dt>{{ t('admin.pre_existing') }}</dt><dd>{{ formatList(rec.preExistingConditions ?? null, 'enum.condition') }}</dd></div>
+              <div class="row"><dt>{{ t('admin.other_conditions') }}</dt><dd>{{ rec.otherPreExistingConditions ?? t('common.dash') }}</dd></div>
+            </dl>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="admin">
+        <h2 id="admin">{{ t('admin.admin_notes') }}</h2>
+        <form class="admin-form" [formGroup]="adminForm" (ngSubmit)="onSaveAdmin()" novalidate>
+          <div class="grid">
+            <label class="field">
+              <span class="label">{{ t('admin.diagnosis') }}</span>
+              <input class="input" type="text" formControlName="diagnosis" />
+            </label>
+
+            <label class="field">
+              <span class="label">{{ t('admin.required_medicine') }}</span>
+              <input class="input" type="text" formControlName="requiredMedicine" />
+            </label>
+          </div>
+
+          <label class="field">
+            <span class="label">{{ t('admin.notes') }}</span>
+            <textarea class="textarea" rows="4" formControlName="notes"></textarea>
+          </label>
+
+          <div class="actions-row">
+            <button class="btn" type="submit" [disabled]="state() === 'loading'">
+              @if (state() === 'loading') { {{ t('admin.saving') }} } @else { {{ t('admin.save') }} }
+            </button>
+            <button class="btn ghost" type="button" (click)="onDownloadPdf()">{{ t('admin.download_pdf') }}</button>
+          </div>
+        </form>
+      </section>
+     } @else {
+       <section class="section empty" aria-label="No record loaded">
+         <p class="hint">{{ t('admin.no_record') }}</p>
+       </section>
+     }
+   </div>
+ </div>
+
+ @if (record()?.signatureDataUrl) {
+   <div class="signature-preview">
+     <img [src]="record()?.signatureDataUrl" alt="Patient signature" />
+   </div>
+ }

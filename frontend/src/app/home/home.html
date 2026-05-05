@@ -1,0 +1,78 @@
+<div class="page">
+  <header class="header">
+    <div class="header-content">
+      <h1 class="title">{{ t('home.title') }}</h1>
+      <p class="subtitle">{{ t('home.subtitle') }}</p>
+    </div>
+    <div class="header-controls">
+      <div class="language-selector">
+        <label>{{ t('language') }}:</label>
+        <select [value]="currentLanguage()" (change)="onLanguageChange($event)" class="lang-select">
+          @for (lang of languages; track lang.code) {
+            <option [value]="lang.code" [selected]="currentLanguage() === lang.code">{{ lang.name }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="cards-container">
+      <div class="card patient-card">
+        <div class="card-icon">Patient</div>
+        <h2>{{ t('home.patient_dashboard') }}</h2>
+        <p>{{ t('home.patient_description') }}</p>
+        <ul class="features">
+          <li>+ {{ t('home.features.complete_forms') }}</li>
+          <li>+ {{ t('home.features.signature') }}</li>
+          <li>+ {{ t('home.features.submit') }}</li>
+          <li>+ {{ t('home.features.no_registration') }}</li>
+        </ul>
+        <a routerLink="/patient-dashboard" class="btn btn-primary">{{ t('home.go_patient') }}</a>
+      </div>
+
+      <div class="card admin-card">
+        <div class="card-icon">Admin</div>
+        <h2>{{ t('home.admin_access') }}</h2>
+        <p>{{ t('home.admin_description') }}</p>
+        <ul class="features">
+          <li>+ {{ t('home.features.view_forms') }}</li>
+          <li>+ {{ t('home.features.add_diagnosis') }}</li>
+          <li>+ {{ t('home.features.export_pdf') }}</li>
+          <li>+ {{ t('home.features.manage_records') }}</li>
+        </ul>
+        <a routerLink="/login" class="btn btn-secondary">{{ t('home.go_login') }}</a>
+      </div>
+    </div>
+
+    <section class="info-section">
+      <h2>{{ t('home.how_it_works') }}</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <h3>{{ t('home.step1') }}</h3>
+          <p>{{ t('home.step1_desc') }}</p>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <h3>{{ t('home.step2') }}</h3>
+          <p>{{ t('home.step2_desc') }}</p>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <h3>{{ t('home.step3') }}</h3>
+          <p>{{ t('home.step3_desc') }}</p>
+        </div>
+        <div class="step">
+          <div class="step-number">4</div>
+          <h3>{{ t('home.step4') }}</h3>
+          <p>{{ t('home.step4_desc') }}</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>&copy; 2026 Clinic Management System</p>
+  </footer>
+</div>

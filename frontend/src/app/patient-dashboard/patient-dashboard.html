@@ -1,0 +1,272 @@
+<div class="page">
+  @if (toast(); as toastState) {
+    <div class="toast" [attr.data-kind]="toastState.kind" role="status" aria-live="polite">
+      <div class="toast-msg">{{ toastState.message }}</div>
+      <button type="button" class="toast-close" (click)="dismissToast()" aria-label="Dismiss message">
+        {{ t('common.close') }}
+      </button>
+    </div>
+  }
+
+  <header class="header">
+    <div class="title-wrap">
+      <h1>{{ t('patient.title') }}</h1>
+      <p class="subtitle">{{ t('patient.medical_info') }}</p>
+    </div>
+    <div class="header-actions">
+      <div class="language-selector">
+        <label>{{ t('language') }}:</label>
+        <select [value]="currentLanguage()" (change)="onLanguageChange($event)" class="lang-select">
+          @for (lang of languages; track lang.code) {
+            <option [value]="lang.code" [selected]="currentLanguage() === lang.code">{{ lang.name }}</option>
+          }
+        </select>
+      </div>
+      <button class="link" type="button" (click)="onResetForm()">{{ t('patient.reset_form') }}</button>
+    </div>
+  </header>
+
+  <form class="card" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate autocomplete="off">
+    <section class="section" aria-labelledby="personal-info">
+      <h2 id="personal-info">{{ t('patient.personal_info') }}</h2>
+
+      <div class="grid">
+        <label class="field">
+          <span class="label">{{ t('patient.first_name') }} *</span>
+          <input class="input upper" type="text" formControlName="firstName" autocomplete="off" />
+          @if (form.controls.firstName.touched && form.controls.firstName.invalid) {
+            <span class="error" role="alert">
+              @if (form.controls.firstName.hasError('required')) { {{ t('patient.required') }}. }
+              @if (form.controls.firstName.hasError('uppercase')) { {{ t('patient.uppercase') }}. }
+            </span>
+          }
+        </label>
+
+        <label class="field">
+          <span class="label">{{ t('patient.last_name') }} *</span>
+          <input class="input upper" type="text" formControlName="lastName" autocomplete="off" />
+          @if (form.controls.lastName.touched && form.controls.lastName.invalid) {
+            <span class="error" role="alert">
+              @if (form.controls.lastName.hasError('required')) { {{ t('patient.required') }}. }
+              @if (form.controls.lastName.hasError('uppercase')) { {{ t('patient.uppercase') }}. }
+            </span>
+          }
+        </label>
+
+        <label class="field">
+          <span class="label">{{ t('patient.date_of_birth') }} *</span>
+          <input class="input" type="date" formControlName="dateOfBirth" />
+          @if (form.controls.dateOfBirth.touched && form.controls.dateOfBirth.hasError('required')) {
+            <span class="error" role="alert">{{ t('patient.required') }}.</span>
+          }
+        </label>
+
+        <label class="field">
+          <span class="label">{{ t('patient.phone') }} *</span>
+          <input class="input" type="tel" formControlName="phoneNumber" autocomplete="off" inputmode="tel" />
+          @if (form.controls.phoneNumber.touched && form.controls.phoneNumber.invalid) {
+            <span class="error" role="alert">
+              @if (form.controls.phoneNumber.hasError('required')) { {{ t('patient.required') }}. }
+              @if (form.controls.phoneNumber.hasError('phone')) { {{ t('patient.phone_format') }}. }
+            </span>
+          }
+        </label>
+
+        <label class="field">
+          <span class="label">{{ t('patient.email') }}</span>
+          <input class="input" type="email" formControlName="emailAddress" autocomplete="off" />
+          @if (form.controls.emailAddress.touched && form.controls.emailAddress.hasError('email')) {
+            <span class="error" role="alert">{{ t('patient.valid_email') }}.</span>
+          }
+        </label>
+      </div>
+
+      <div class="grid">
+        <label class="field">
+          <span class="label">{{ t('patient.street_name') }} *</span>
+          <input class="input upper" type="text" formControlName="streetName" autocomplete="off" />
+          @if (form.controls.streetName.touched && form.controls.streetName.invalid) {
+            <span class="error" role="alert">
+              @if (form.controls.streetName.hasError('required')) { {{ t('patient.required') }}. }
+              @if (form.controls.streetName.hasError('uppercase')) { {{ t('patient.uppercase') }}. }
+            </span>
+          }
+        </label>
+
+        <label class="field">
+          <span class="label">{{ t('patient.street_number') }} *</span>
+          <input class="input" type="text" formControlName="streetNumber" inputmode="numeric" />
+          @if (form.controls.streetNumber.touched && form.controls.streetNumber.invalid) {
+            <span class="error" role="alert">
+              @if (form.controls.streetNumber.hasError('required')) { {{ t('patient.required') }}. }
+              @if (form.controls.streetNumber.hasError('digitsOnly')) { {{ t('patient.numbers') }}. }
+            </span>
+          }
+        </label>
+
+        <label class="field">
+          <span class="label">{{ t('patient.city') }} *</span>
+          <input class="input upper" type="text" formControlName="city" autocomplete="off" />
+          @if (form.controls.city.touched && form.controls.city.invalid) {
+            <span class="error" role="alert">
+              @if (form.controls.city.hasError('required')) { {{ t('patient.required') }}. }
+              @if (form.controls.city.hasError('uppercase')) { {{ t('patient.uppercase') }}. }
+            </span>
+          }
+        </label>
+
+        <label class="field">
+          <span class="label">{{ t('patient.postal_code') }} *</span>
+          <input class="input" type="text" formControlName="postalCode" inputmode="numeric" />
+          @if (form.controls.postalCode.touched && form.controls.postalCode.invalid) {
+            <span class="error" role="alert">
+              @if (form.controls.postalCode.hasError('required')) { {{ t('patient.required') }}. }
+              @if (form.controls.postalCode.hasError('digitsOnly')) { {{ t('patient.numbers') }}. }
+            </span>
+          }
+        </label>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="medical-info">
+      <h2 id="medical-info">{{ t('patient.medical_info') }}</h2>
+
+      <fieldset class="fieldset" aria-describedby="symptoms-help">
+        <legend>{{ t('patient.symptoms') }} ({{ t('patient.select_all') }})</legend>
+        <p id="symptoms-help" class="hint">{{ t('patient.select_hint') }}</p>
+        <div
+          class="chip-set"
+          role="listbox"
+          aria-multiselectable="true"
+          aria-label="Symptoms"
+        >
+          @for (opt of symptomsOptions; track opt.value) {
+            <button
+              type="button"
+              class="chip"
+              role="option"
+              title="{{ t(opt.labelKey) }}"
+              [attr.aria-selected]="isSelected(form.controls.symptoms, opt.value)"
+              [attr.data-selected]="isSelected(form.controls.symptoms, opt.value)"
+              (click)="onToggleSymptom(opt.value)"
+            >
+              @if (opt.image) {
+                <img class="chip-image" [src]="opt.image" [alt]="t(opt.labelKey)" />
+              }
+              <span class="chip-label">{{ t(opt.labelKey) }}</span>
+            </button>
+          }
+        </div>
+      </fieldset>
+
+      <label class="field">
+        <span class="label">{{ t('patient.other_symptoms') }}</span>
+        <textarea class="textarea" rows="2" formControlName="otherSymptoms"></textarea>
+      </label>
+
+      <div class="grid3">
+        <fieldset class="fieldset">
+          <legend>{{ t('patient.allergies') }}</legend>
+          <div class="checks">
+            @for (opt of allergiesOptions; track opt.value) {
+              <label class="check">
+                <input
+                  type="checkbox"
+                  [checked]="isSelected(form.controls.allergies, opt.value)"
+                  (change)="onToggleAllergy(opt.value)"
+                />
+                <span>{{ t(opt.labelKey) }}</span>
+              </label>
+            }
+          </div>
+          <label class="field">
+            <span class="label">{{ t('patient.other_allergies') }}</span>
+            <input class="input" type="text" formControlName="otherAllergies" />
+          </label>
+        </fieldset>
+
+        <fieldset class="fieldset">
+          <legend>{{ t('patient.medications') }}</legend>
+          <div class="checks">
+            @for (opt of medicationsOptions; track opt.value) {
+              <label class="check">
+                <input
+                  type="checkbox"
+                  [checked]="isSelected(form.controls.medications, opt.value)"
+                  (change)="onToggleMedication(opt.value)"
+                />
+                <span>{{ t(opt.labelKey) }}</span>
+              </label>
+            }
+          </div>
+          <label class="field">
+            <span class="label">{{ t('patient.other_medications') }}</span>
+            <input class="input" type="text" formControlName="otherMedications" />
+          </label>
+        </fieldset>
+
+        <fieldset class="fieldset">
+          <legend>{{ t('patient.pre_existing_conditions') }}</legend>
+          <div class="checks">
+            @for (opt of conditionsOptions; track opt.value) {
+              <label class="check">
+                <input
+                  type="checkbox"
+                  [checked]="isSelected(form.controls.preExistingConditions, opt.value)"
+                  (change)="onToggleCondition(opt.value)"
+                />
+                <span>{{ t(opt.labelKey) }}</span>
+              </label>
+            }
+          </div>
+          <label class="field">
+            <span class="label">{{ t('patient.other_pre_existing') }}</span>
+            <input class="input" type="text" formControlName="otherPreExistingConditions" />
+          </label>
+        </fieldset>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="signature">
+       <h2 id="signature">{{ t('patient.signature') }}</h2>
+       <p class="hint">{{ t('patient.draw_signature') }}</p>
+       <app-signature-pad
+         [dataUrl]="form.controls.signatureDataUrl.value"
+         (dataUrlChange)="onSignatureChange($event)"
+       />
+        <div class="actions-row">
+          <button type="button" class="btn ghost" (click)="clearSignature()">{{ t('patient.clear_signature') }}</button>
+        </div>
+      </section>
+
+    <footer class="footer">
+       <div class="status" aria-live="polite">
+         @if (submitState() === 'success') {
+           <span class="ok">{{ t('patient.submitted') }} @if (lastResponseId() !== null) { ID: {{ lastResponseId() }} }</span>
+         } @else if (submitState() === 'error') {
+           <span class="bad">{{ t('patient.error') }}: {{ submitError() }}</span>
+         } @else if (submitState() === 'submitting') {
+           <span>{{ t('patient.submitting') }}</span>
+         }
+       </div>
+
+       <label class="check agreement">
+         <input
+           type="checkbox"
+           formControlName="dataProtectionAgreed"
+         />
+         <span>{{ t('patient.data_protection') }}</span>
+       </label>
+       @if (form.controls.dataProtectionAgreed.touched && form.controls.dataProtectionAgreed.invalid) {
+         <span class="error" role="alert">{{ t('patient.data_protection_required') }}</span>
+       }
+
+       <div class="buttons">
+         <button class="btn" type="submit" [disabled]="form.invalid || submitState() === 'submitting'">
+           {{ t('patient.submit') }}
+         </button>
+         <button class="btn ghost" type="button" (click)="clearLocal()">{{ t('patient.clear_local') }}</button>
+       </div>
+     </footer>
+  </form>
+</div>

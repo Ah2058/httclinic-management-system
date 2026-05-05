@@ -1,0 +1,75 @@
+<div class="page">
+  @if (toast(); as toastState) {
+    <div class="toast" [attr.data-kind]="toastState.kind" role="status" aria-live="polite">
+      <div class="toast-msg">{{ toastState.message }}</div>
+      <button type="button" class="toast-close" (click)="dismissToast()" aria-label="Dismiss message">
+        {{ t('common.close') }}
+      </button>
+    </div>
+  }
+
+  <header class="header">
+    <div class="title-wrap">
+      <h1>{{ t('login.title') }}</h1>
+      <p class="subtitle">{{ t('login.subtitle') }}</p>
+    </div>
+    <div class="header-actions">
+      <div class="language-selector">
+        <label>{{ t('language') }}:</label>
+        <select [value]="currentLanguage()" (change)="onLanguageChange($event)" class="lang-select">
+          @for (lang of languages; track lang.code) {
+            <option [value]="lang.code" [selected]="currentLanguage() === lang.code">{{ lang.name }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <form class="card" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate autocomplete="off">
+    <section class="section" aria-labelledby="login-form">
+      <h2 id="login-form">{{ t('login.title') }}</h2>
+
+      <div class="grid">
+        <label class="field">
+          <span class="label">{{ t('login.username') }} *</span>
+          <input
+            class="input"
+            type="text"
+            formControlName="username"
+            autocomplete="off"
+            name="login-username"
+            autocapitalize="none"
+            spellcheck="false"
+          />
+          @if (form.controls.username.touched && form.controls.username.hasError('required')) {
+            <span class="error" role="alert">{{ t('patient.required') }}.</span>
+          }
+        </label>
+
+         <label class="field">
+           <span class="label">{{ t('login.password') }} *</span>
+           <input
+             class="input"
+             type="password"
+             formControlName="password"
+             autocomplete="new-password"
+             name="login-password"
+           />
+           @if (form.controls.password.touched && form.controls.password.hasError('required')) {
+             <span class="error" role="alert">{{ t('patient.required') }}.</span>
+           }
+         </label>
+      </div>
+
+      @if (submitState() === 'error' && errorMessage(); as msg) {
+        <p class="error-block" role="alert">{{ msg }}</p>
+      }
+
+      <div class="actions">
+        <button class="btn" type="submit" [disabled]="submitState() === 'submitting'">
+          @if (submitState() === 'submitting') { {{ t('login.logging_in') }} } @else { {{ t('login.login') }} }
+        </button>
+      </div>
+    </section>
+  </form>
+</div>
