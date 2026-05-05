@@ -159,69 +159,15 @@ docker:build-and-push:
   stage: deploy
   image: alpine:3.21
   before_script:
-    - apk add --no-cache openssh-client sshpass docker-cli-compose
-    - mkdir -p ~/.ssh
-    - ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
-    - |
-      if [ -n "$SSH_PRIVATE_KEY" ]; then
-        echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
-        chmod 600 ~/.ssh/id_ed25519
-        export SSH_CONNECT="ssh -i ~/.ssh/id_ed25519"
-        export SCP_CONNECT="scp -i ~/.ssh/id_ed25519"
-      elif [ -n "$SSH_PASSWORD" ]; then
-        export SSHPASS="$SSH_PASSWORD"
-        export SSH_CONNECT="sshpass -e ssh"
-        export SCP_CONNECT="sshpass -e scp"
-      else
-        echo "Either SSH_PRIVATE_KEY or SSH_PASSWORD must be set."
-        exit 1
-      fi
+    - apk add --no-cache curl
   script:
-    - >
-      $SSH_CONNECT "$DEPLOY_USER@$DEPLOY_HOST"
-      "mkdir -p '$DEPLOY_PATH'"
-    - >
-      $SCP_CONNECT docker-compose.yml "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/docker-compose.yml"
-    - |
-      cat > docker-compose.override.yml <<EOF
-      services:
-        auth-service:
-          image: $AUTH_SERVICE_IMAGE
-        submit-service:
-          image: $SUBMIT_SERVICE_IMAGE
-        api-gateway:
-          image: $API_GATEWAY_IMAGE
-        frontend:
-          image: $FRONTEND_IMAGE
-      EOF
-    - >
-      $SCP_CONNECT docker-compose.override.yml
-      "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/docker-compose.override.yml"
-    - |
-      cat > deploy.env <<EOF
-      FRONTEND_IMAGE=$FRONTEND_IMAGE
-      API_GATEWAY_IMAGE=$API_GATEWAY_IMAGE
-      AUTH_SERVICE_IMAGE=$AUTH_SERVICE_IMAGE
-      SUBMIT_SERVICE_IMAGE=$SUBMIT_SERVICE_IMAGE
-      DB_PORT=${DB_PORT:-3306}
-      AUTH_SERVICE_PORT=${AUTH_SERVICE_PORT:-8080}
-      SUBMIT_SERVICE_PORT=${SUBMIT_SERVICE_PORT:-8081}
-      API_GATEWAY_PORT=${API_GATEWAY_PORT:-8888}
-      FRONTEND_PORT=${FRONTEND_PORT:-4200}
-      MARIADB_ROOT_PASSWORD=$MARIADB_ROOT_PASSWORD
-      MARIADB_DATABASE=${MARIADB_DATABASE:-clinicdb}
-      DB_USER=${DB_USER:-root}
-      DB_ROOT_PASSWORD=$DB_ROOT_PASSWORD
-      EOF
-    - >
-      $SCP_CONNECT deploy.env
-      "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/.env"
-    - >
-      $SSH_CONNECT "$DEPLOY_USER@$DEPLOY_HOST"
-      "cd '$DEPLOY_PATH' &&
-      docker login '$CI_REGISTRY' -u '$CI_REGISTRY_USER' -p '$CI_REGISTRY_PASSWORD' &&
-      docker compose pull &&
-      docker compose up -d"
+   railway login --token "$RAILWAY_TOKEN"
+   railway up --project "$RAILWAY_PROJECT_ID" --service "auth-service" --image "$AUTH_SERVICE_IMAGE"
+   railway up --project "$RAILWAY_PROJECT_ID" --service "submit-service" --image "$SUBMIT_SERVICE_IMAGE"
+   railway up --project "$RAIL        
+   WAY_PROJECT_ID" --service "api-gateway" --image "$API_GATEWAY_IMAGE"
+   railway up --project "$RAILWAY_PROJECT_ID" --service "frontend" --image "$FRONTEND_IMAGE"
+
 
 deploy:staging:
   extends: .deploy_template
