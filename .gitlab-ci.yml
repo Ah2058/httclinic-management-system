@@ -1,13 +1,220 @@
-# You can override the included template(s) by including variable overrides
-# SAST customization: https://docs.gitlab.com/user/application_security/sast/#available-cicd-variables
-# Secret Detection customization: https://docs.gitlab.com/user/application_security/secret_detection/pipeline/configure/
-# Dependency Scanning customization: https://docs.gitlab.com/user/application_security/dependency_scanning/dependency_scanning_sbom/#customizing-analyzer-behavior
-# Container Scanning customization: https://docs.gitlab.com/user/application_security/container_scanning/#customizing-analyzer-behavior
-# Note that environment variables can be set in several places
-# See https://docs.gitlab.com/ci/variables/#cicd-variable-precedence
 stages:
-- test
+  - test
+  - build
+  - docker
+  - deploy
+
+variables:
+  MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version"
+  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+  NODE_ENV: "production"
+  DOCKER_DRIVER: "overlay2"
+  DOCKER_TLS_CERTDIR: "/certs"
+  DOCKER_BUILDKIT: "1"
+  IMAGE_TAG: "$CI_COMMIT_SHORT_SHA"
+  FRONTEND_IMAGE: "$CI_REGISTRY_IMAGE/frontend:$IMAGE_TAG"
+  API_GATEWAY_IMAGE: "$CI_REGISTRY_IMAGE/api-gateway:$IMAGE_TAG"
+  AUTH_SERVICE_IMAGE: "$CI_REGISTRY_IMAGE/auth-service:$IMAGE_TAG"
+  SUBMIT_SERVICE_IMAGE: "$CI_REGISTRY_IMAGE/submit-service:$IMAGE_TAG"
+  DEPLOY_PATH: "/opt/clinic-management-system"
+
+default:
+  interruptible: true
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH
+
+cache:
+  key: "$CI_COMMIT_REF_SLUG"
+  paths:
+    - .m2/repository
+    - m2/repository
+    - frontend/node_modules
+
+include:
+  - template: Security/SAST.gitlab-ci.yml
+
 sast:
   stage: test
-include:
-- template: Security/SAST.gitlab-ci.yml
+
+.maven_test_template:
+  stage: test
+  image: maven:3.9.9-eclipse-temurin-17
+  script:
+    - mvn $MAVEN_CLI_OPTS test
+
+.maven_build_template:
+  stage: build
+  image: maven:3.9.9-eclipse-temurin-17
+  script:
+    - mvn $MAVEN_CLI_OPTS clean package -DskipTests
+
+test:auth-service:
+  extends: .maven_test_template
+  variables:
+    SPRING_PROFILES_ACTIVE: "test"
+  before_script:
+    - cd auth-service
+
+test:submit-service:
+  extends: .maven_test_template
+  variables:
+    SPRING_PROFILES_ACTIVE: "test"
+  before_script:
+    - cd submit-service/submit-service
+
+test:api-gateway:
+  extends: .maven_test_template
+  before_script:
+    - cd api-gateway
+
+build:auth-service:
+  extends: .maven_build_template
+  before_script:
+    - cd auth-service
+  artifacts:
+    paths:
+      - auth-service/target/*.jar
+    expire_in: 1 week
+
+build:submit-service:
+  extends: .maven_build_template
+  before_script:
+    - cd submit-service/submit-service
+  artifacts:
+    paths:
+      - submit-service/submit-service/target/*.jar
+    expire_in: 1 week
+
+build:api-gateway:
+  extends: .maven_build_template
+  before_script:
+    - cd api-gateway
+  artifacts:
+    paths:
+      - api-gateway/target/*.jar
+    expire_in: 1 week
+
+build:frontend:
+  stage: build
+  image: node:22-bookworm
+  before_script:
+    - cd frontend
+    - npm ci
+  script:
+    - npm run build
+  artifacts:
+    paths:
+      - frontend/dist
+    expire_in: 1 week
+
+docker:build-and-push:
+  stage: docker
+  image: docker:27
+  services:
+    - name: docker:27-dind
+      alias: docker
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" --password-stdin
+  script:
+    - docker build -t "$AUTH_SERVICE_IMAGE" auth-service
+    - docker push "$AUTH_SERVICE_IMAGE"
+    - docker build -t "$SUBMIT_SERVICE_IMAGE" submit-service/submit-service
+    - docker push "$SUBMIT_SERVICE_IMAGE"
+    - docker build -t "$API_GATEWAY_IMAGE" api-gateway
+    - docker push "$API_GATEWAY_IMAGE"
+    - docker build -t "$FRONTEND_IMAGE" frontend
+    - docker push "$FRONTEND_IMAGE"
+  needs:
+    - build:auth-service
+    - build:submit-service
+    - build:api-gateway
+    - build:frontend
+  rules:
+    - if: $CI_COMMIT_BRANCH
+
+.deploy_template:
+  stage: deploy
+  image: alpine:3.21
+  before_script:
+    - apk add --no-cache openssh-client sshpass docker-cli-compose
+    - mkdir -p ~/.ssh
+    - ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+    - |
+      if [ -n "$SSH_PRIVATE_KEY" ]; then
+        echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
+        chmod 600 ~/.ssh/id_ed25519
+        export SSH_CONNECT="ssh -i ~/.ssh/id_ed25519"
+        export SCP_CONNECT="scp -i ~/.ssh/id_ed25519"
+      elif [ -n "$SSH_PASSWORD" ]; then
+        export SSHPASS="$SSH_PASSWORD"
+        export SSH_CONNECT="sshpass -e ssh"
+        export SCP_CONNECT="sshpass -e scp"
+      else
+        echo "Either SSH_PRIVATE_KEY or SSH_PASSWORD must be set."
+        exit 1
+      fi
+  script:
+    - >
+      $SSH_CONNECT "$DEPLOY_USER@$DEPLOY_HOST"
+      "mkdir -p '$DEPLOY_PATH'"
+    - >
+      $SCP_CONNECT docker-compose.yml "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/docker-compose.yml"
+    - |
+      cat > docker-compose.override.yml <<EOF
+      services:
+        auth-service:
+          image: $AUTH_SERVICE_IMAGE
+        submit-service:
+          image: $SUBMIT_SERVICE_IMAGE
+        api-gateway:
+          image: $API_GATEWAY_IMAGE
+        frontend:
+          image: $FRONTEND_IMAGE
+      EOF
+    - >
+      $SCP_CONNECT docker-compose.override.yml
+      "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/docker-compose.override.yml"
+    - |
+      cat > deploy.env <<EOF
+      FRONTEND_IMAGE=$FRONTEND_IMAGE
+      API_GATEWAY_IMAGE=$API_GATEWAY_IMAGE
+      AUTH_SERVICE_IMAGE=$AUTH_SERVICE_IMAGE
+      SUBMIT_SERVICE_IMAGE=$SUBMIT_SERVICE_IMAGE
+      DB_PORT=${DB_PORT:-3306}
+      AUTH_SERVICE_PORT=${AUTH_SERVICE_PORT:-8080}
+      SUBMIT_SERVICE_PORT=${SUBMIT_SERVICE_PORT:-8081}
+      API_GATEWAY_PORT=${API_GATEWAY_PORT:-8888}
+      FRONTEND_PORT=${FRONTEND_PORT:-4200}
+      MARIADB_ROOT_PASSWORD=$MARIADB_ROOT_PASSWORD
+      MARIADB_DATABASE=${MARIADB_DATABASE:-clinicdb}
+      DB_USER=${DB_USER:-root}
+      DB_ROOT_PASSWORD=$DB_ROOT_PASSWORD
+      EOF
+    - >
+      $SCP_CONNECT deploy.env
+      "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/.env"
+    - >
+      $SSH_CONNECT "$DEPLOY_USER@$DEPLOY_HOST"
+      "cd '$DEPLOY_PATH' &&
+      docker login '$CI_REGISTRY' -u '$CI_REGISTRY_USER' -p '$CI_REGISTRY_PASSWORD' &&
+      docker compose pull &&
+      docker compose up -d"
+
+deploy:staging:
+  extends: .deploy_template
+  environment:
+    name: staging
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
+
+deploy:production:
+  extends: .deploy_template
+  environment:
+    name: production
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: manual
