@@ -21,7 +21,7 @@ spring:
               - http://localhost:4200
               - http://localhost:4300
               - http://frontend:4200
-              - https://your-railway-frontend-url.railway.app  # ← أضف URL الفرونتند على Railway
+              - https://frontend-production-a054.up.railway.app
             allowedMethods:
               - GET
               - POST
