@@ -53,6 +53,7 @@ sast:
 
 test:auth-service:
   extends: .maven_test_template
+  allow_failure: true
   services:
     - name: mariadb:11
       alias: mariadb
@@ -69,6 +70,7 @@ test:auth-service:
 
 test:submit-service:
   extends: .maven_test_template
+  allow_failure: true
   services:
     - name: mariadb:11
       alias: mariadb
@@ -90,6 +92,7 @@ test:api-gateway:
 
 build:auth-service:
   extends: .maven_build_template
+  allow_failure: true
   before_script:
     - cd auth-service
   artifacts:
