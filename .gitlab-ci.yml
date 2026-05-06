@@ -162,17 +162,22 @@ docker:build-and-push:
     - apk add --no-cache curl
     - |
       deploy_service() {
-        SERVICE_NAME=$1
+        SERVICE_ID=$1
         IMAGE=$2
+        echo "Deploying $IMAGE to service $SERVICE_ID..."
         curl -s -X POST "https://backboard.railway.app/graphql/v2" \
           -H "Authorization: Bearer $RAILWAY_TOKEN" \
           -H "Content-Type: application/json" \
-          -d "{\"query\": \"mutation { serviceInstanceDeploy(input: { projectId: \\\"$RAILWAY_PROJECT_ID\\\", serviceName: \\\"$SERVICE_NAME\\\", image: \\\"$IMAGE\\\" }) }\"}"
+          -d "{\"query\":\"mutation { serviceInstanceUpdate(serviceId: \\\"$SERVICE_ID\\\", input: { source: { image: \\\"$IMAGE\\\" } }) { id } }\"}"
+        curl -s -X POST "https://backboard.railway.app/graphql/v2" \
+          -H "Authorization: Bearer $RAILWAY_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d "{\"query\":\"mutation { serviceInstanceDeploy(serviceId: \\\"$SERVICE_ID\\\") }\"}"
       }
-    - deploy_service "auth-service"    "$AUTH_SERVICE_IMAGE"
-    - deploy_service "submit-service"  "$SUBMIT_SERVICE_IMAGE"
-    - deploy_service "api-gateway"     "$API_GATEWAY_IMAGE"
-    - deploy_service "frontend"        "$FRONTEND_IMAGE"
+    - deploy_service "89b85f85-f246-4bcd-a5e2-420b44542c89" "$AUTH_SERVICE_IMAGE"
+    - deploy_service "57262734-3750-4948-8b94-35a906e155d4" "$SUBMIT_SERVICE_IMAGE"
+    - deploy_service "d2ce2905-6206-4001-a1c7-58bf5587b6ad" "$API_GATEWAY_IMAGE"
+    - deploy_service "560a7cc1-af92-4d54-918e-c6a92e55501b" "$FRONTEND_IMAGE"
 
 deploy:staging:
   extends: .deploy_template
