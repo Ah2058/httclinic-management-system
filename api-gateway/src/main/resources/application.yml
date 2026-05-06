@@ -5,11 +5,11 @@ spring:
     gateway:
       routes:
         - id: auth-service
-          uri: http://auth-service.railway.internal:8080
+          uri: ${AUTH_SERVICE_URL:http://localhost:8080}
           predicates:
             - Path=/api/auth/**
         - id: submit-service
-          uri: http://submit-service.railway.internal:8080
+          uri: ${SUBMIT_SERVICE_URL:http://localhost:8081}
           predicates:
             - Path=/api/submit/**
       default-filters:
