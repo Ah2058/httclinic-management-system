@@ -139,14 +139,18 @@ docker:build-and-push:
   before_script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" --password-stdin
   script:
-    - docker build -t "$AUTH_SERVICE_IMAGE" auth-service
+    - docker build -t "$AUTH_SERVICE_IMAGE" -t "$CI_REGISTRY_IMAGE/auth-service:latest" auth-service
     - docker push "$AUTH_SERVICE_IMAGE"
-    - docker build -t "$SUBMIT_SERVICE_IMAGE" submit-service/submit-service
+    - docker push "$CI_REGISTRY_IMAGE/auth-service:latest"
+    - docker build -t "$SUBMIT_SERVICE_IMAGE" -t "$CI_REGISTRY_IMAGE/submit-service:latest" submit-service/submit-service
     - docker push "$SUBMIT_SERVICE_IMAGE"
-    - docker build -t "$API_GATEWAY_IMAGE" api-gateway
+    - docker push "$CI_REGISTRY_IMAGE/submit-service:latest"
+    - docker build -t "$API_GATEWAY_IMAGE" -t "$CI_REGISTRY_IMAGE/api-gateway:latest" api-gateway
     - docker push "$API_GATEWAY_IMAGE"
-    - docker build -t "$FRONTEND_IMAGE" frontend
+    - docker push "$CI_REGISTRY_IMAGE/api-gateway:latest"
+    - docker build -t "$FRONTEND_IMAGE" -t "$CI_REGISTRY_IMAGE/frontend:latest" frontend
     - docker push "$FRONTEND_IMAGE"
+    - docker push "$CI_REGISTRY_IMAGE/frontend:latest"
   needs:
     - build:auth-service
     - build:submit-service
