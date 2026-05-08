@@ -10,18 +10,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Login to Registry
-        run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login registry.gitlab.com -u "${{ secrets.REGISTRY_USER }}" --password-stdin
+      - name: Login to GitHub Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Build and Push api-gateway
         run: |
-          docker build -t registry.gitlab.com/${{ secrets.REGISTRY_IMAGE }}/api-gateway:latest api-gateway
-          docker push registry.gitlab.com/${{ secrets.REGISTRY_IMAGE }}/api-gateway:latest
+          docker build -t ghcr.io/${{ github.repository_owner }}/api-gateway:latest api-gateway
+          docker push ghcr.io/${{ github.repository_owner }}/api-gateway:latest
 
       - name: Build and Push frontend
         run: |
-          docker build -t registry.gitlab.com/${{ secrets.REGISTRY_IMAGE }}/frontend:latest frontend
-          docker push registry.gitlab.com/${{ secrets.REGISTRY_IMAGE }}/frontend:latest
+          docker build -t ghcr.io/${{ github.repository_owner }}/frontend:latest frontend
+          docker push ghcr.io/${{ github.repository_owner }}/frontend:latest
 
   deploy:
     runs-on: ubuntu-latest
