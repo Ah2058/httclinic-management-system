@@ -15,13 +15,13 @@ jobs:
 
       - name: Build and Push api-gateway
         run: |
-          docker build -t ghcr.io/${{ github.repository_owner }}/api-gateway:latest api-gateway
-          docker push ghcr.io/${{ github.repository_owner }}/api-gateway:latest
+          docker build -t ghcr.io/ah2058/api-gateway:latest api-gateway
+          docker push ghcr.io/ah2058/api-gateway:latest
 
       - name: Build and Push frontend
         run: |
-          docker build -t ghcr.io/${{ github.repository_owner }}/frontend:latest frontend
-          docker push ghcr.io/${{ github.repository_owner }}/frontend:latest
+          docker build -t ghcr.io/ah2058/frontend:latest frontend
+          docker push ghcr.io/ah2058/frontend:latest
 
   deploy:
     runs-on: ubuntu-latest
