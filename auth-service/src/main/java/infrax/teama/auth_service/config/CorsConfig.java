@@ -19,7 +19,7 @@ public class CorsConfig {
                 "http://localhost:4300",
                 "http://localhost:8888",
                 "http://frontend:4200",
-                "http://api-gateway:8888"
+                "http://api-gateway:8888",
                 "https://submit-service-production.up.railway.app",
                 "https://api-gateway-production-1f39.up.railway.app",
                 "https://frontend-production-a054.up.railway.app"
