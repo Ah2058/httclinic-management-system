@@ -1,5 +1,6 @@
 package infrax.teama.api_gateway;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.gateway.route.RouteLocator;
@@ -12,6 +13,12 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 @SpringBootApplication
 public class ApiGatewayApplication {
 
+    @Value("${AUTH_SERVICE_URL:http://auth-service.railway.internal:8080}")
+    private String authServiceUrl;
+
+    @Value("${SUBMIT_SERVICE_URL:http://submit-service.railway.internal:8080}")
+    private String submitServiceUrl;
+
     public static void main(String[] args) {
         SpringApplication.run(ApiGatewayApplication.class, args);
     }
@@ -19,14 +26,12 @@ public class ApiGatewayApplication {
     @Bean
     public RouteLocator routeLocator(RouteLocatorBuilder builder) {
         return builder.routes()
-                // Auth Service Routes
                 .route("auth-service", r -> r
                         .path("/api/auth/**")
-                        .uri("http://auth-service:8080"))
-                // Submit Service Routes
+                        .uri(authServiceUrl))
                 .route("submit-service", r -> r
                         .path("/api/submit/**")
-                        .uri("http://submit-service:8080"))
+                        .uri(submitServiceUrl))
                 .build();
     }
 
@@ -38,11 +43,8 @@ public class ApiGatewayApplication {
         corsConfiguration.addAllowedHeader("*");
         corsConfiguration.addAllowedMethod("*");
         corsConfiguration.setMaxAge(3600L);
-
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfiguration);
         return source;
     }
-
 }
-
